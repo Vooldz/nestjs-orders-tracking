@@ -4,23 +4,24 @@ import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from 'src/users/users.module';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
     UsersModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      // eslint-disable-next-line @typescript-eslint/require-await
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('ACCESS_TOKEN_SECRET'),
         signOptions: {
-          expiresIn: configService.get<number>('JWT_EXPIRES_IN', 900),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN', '15m') as any,
         },
       }),
       inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}
