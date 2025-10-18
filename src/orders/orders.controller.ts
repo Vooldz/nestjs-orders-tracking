@@ -15,9 +15,10 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
+import { ApiKeyGuard } from 'src/common/guards/api-key.guard';
 
 @Controller('orders')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), ApiKeyGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
@@ -36,7 +37,7 @@ export class OrdersController {
     return await this.ordersService.findOne(id, req.user._id, req.user.role);
   }
 
-  @Patch(':id')
+  @Patch(':id/status')
   async update(
     @Param('id', ParseObjectIdPipe) id: string,
     @Body() updateOrderDto: UpdateOrderDto,
