@@ -9,11 +9,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Order, OrderDocument } from './schemas/order.schema';
 import { Model, Types } from 'mongoose';
 import { Role } from 'src/auth/roles.enum';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async create(createOrderDto: CreateOrderDto, userId: string): Promise<Order> {
@@ -66,6 +68,13 @@ export class OrdersService {
     const updatedOrder = await this.orderModel
       .findByIdAndUpdate(id, updateOrderDto, { new: true })
       .exec();
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      this.eventEmitter.emit('order.status.updated', updatedOrder);
+    } catch (error) {
+      console.error('Error emitting event:', error);
+    }
 
     return updatedOrder as Order;
   }
